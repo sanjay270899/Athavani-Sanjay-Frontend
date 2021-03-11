@@ -1,0 +1,12 @@
+body{
+  background-color: #ffaa00;
+background-image: url("../src/Images/sign_bg.jpg");
+background-position: center center;
+background-attachment: fixed;
+background-size: cover;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
