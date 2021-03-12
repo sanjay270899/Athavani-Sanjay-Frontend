@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // const mainUrl = "https://memories-mern-stack.herokuapp.com/";
 const mainUrl = "https://athavani-sanjay-backend.herokuapp.com/"
-// const mainURl = "http://localhost:5000/"
+// const mainUrl = "http://localhost:5000/"
 
 const postUrl = mainUrl + "posts";
 const userUrl = mainUrl + "auth";
