@@ -49,9 +49,6 @@ const Posts = ({setCurrentId}) =>{
         !posts.length ? <CircularProgress/> : (
             <>
                 <div className={classes.filterBar}>
-                    <Link to='/profile'>
-                        <Button aria-controls="simple-menu" aria-haspopup="true" className={classes.filterButtons}>My Profile</Button>
-                    </Link>
                     <Button aria-controls="simple-menu" aria-haspopup="true" onClick={handleClick} className={classes.filterButtons}>
                         Sort
                     </Button>
@@ -80,7 +77,7 @@ const Posts = ({setCurrentId}) =>{
                     if(isFavoritePosts && !post.favorites.includes(creatorID)) {
                         return (<></>)
                     } else {
-                        return (<Grid key={post._id} item xs={12} sm={6}>
+                        return (<Grid key={post._id} item xs={12} sm={12}>
                             <Post post={post} setCurrentId={setCurrentId}/>
                         </Grid>)
                     }})}
