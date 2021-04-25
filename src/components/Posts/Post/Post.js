@@ -16,8 +16,12 @@ import {
   IconButton,
   withStyles,
   Backdrop,
+  Dialog,
+  DialogTitle,
 } from "@material-ui/core";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
+import ThumbUpAltOutlinedIcon from '@material-ui/icons/ThumbUpAltOutlined';
+import ThumbDownAltOutlinedIcon from '@material-ui/icons/ThumbDownAltOutlined';
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
@@ -42,11 +46,16 @@ import {
 } from "../../../actions/posts";
 import dotenv from "dotenv";
 import { password1 } from "./password";
+import Aos from "aos"
+import "aos/dist/aos.css";
+
 
 const Post = ({ post, setCurrentId, fromProfile }) => {
   dotenv.config();
   console.log(post);
-
+  useEffect(()=>{
+    Aos.init({duration:2000});
+},[])
   const history = useHistory();
   const [creatorID, setCreatorID] = useState("");
 
@@ -71,6 +80,8 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
   const [openDeleteComment, setOpenDeleteComment] = useState(false); // for users
   const [openDeleteCommentAdmin, setOpenDeleteCommentAdmin] = useState(false); // for admin
   const [commentID, setCommentID] = useState('');
+  const [commented, setCommented] = useState(false);
+  const [commentDeleted, setCommentDeleted] = useState(false);
 
   // function to open delete post option
   const handleOpen = () => {
@@ -156,7 +167,7 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
     };
 
     return (
-      <div className={classes.paper}>
+      <div className={classes.paper} >
         <h2 id="simple-modal-title">
           <center>Please Enter {name} Password</center>
         </h2>
@@ -193,6 +204,7 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
       if (openDeleteComment) {
         // for user
         let matched = false;
+        setCommentDeleted(true);
         try {
           const { data } = await api.checkPassword({
             id: creatorID,
@@ -215,12 +227,15 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
             })
           ).then(() => toast.success("Comment Deleted."));
           handleCommentClose();
+          setCommentDeleted(false);
           toast.info("Deleting Comment... It may take some seconds.");
         } else {
+          setCommentDeleted(false);
           setOpenDeleteComment(false);
           toast.error("You have entered wrong password!");
         }
       } else if (openDeleteCommentAdmin) {
+        setCommentDeleted(true);
         // for admin
         if (password === password1) {
           dispatch(
@@ -229,9 +244,11 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
             })
           ).then(() => toast.success("Comment Deleted."));
           handleCommentClose();
+          setCommentDeleted(false);
           toast.info("Deleting Comment... It may take some seconds.");
         } else {
           setOpenDeleteCommentAdmin(false);
+          setCommentDeleted(false);
           toast.error("You have entered wrong password!!!");
         }
       }
@@ -259,6 +276,10 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
           variant="contained"
           className={classes.paperButton}
           onClick={handleSubmit}
+          disabled={commentDeleted}
+          style={{
+            opacity: commentDeleted ? "0.8" : "1"
+          }}
         >
           Submit
         </Button>
@@ -283,7 +304,7 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
 
   return (
     <>
-      <Card className={classes.card}>
+      <Card data-aos="fade-up"  className={classes.card}>
         <CardMedia
           className={classes.media}
           image={post.selectedFile}
@@ -409,8 +430,8 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
                 })
               );
             }}
-          >
-            <ThumbUpAltIcon fontSize="small" style={{ paddingRight: "5" }} />
+          >{post.likes.includes(creatorID) ? <ThumbUpAltIcon fontSize="small" style={{ paddingRight: "5" }} /> : <ThumbUpAltOutlinedIcon fontSize="small" style={{ paddingRight: "5" }} />}
+            
             {post.likes.length}
           </Button>
 
@@ -434,8 +455,8 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
                 })
               );
             }}
-          >
-            <ThumbDownAltIcon fontSize="small" style={{ paddingRight: "5" }} />
+          >{post.dislikes.includes(creatorID) ? <ThumbDownAltIcon fontSize="small" style={{ paddingRight: "5" }} /> : <ThumbDownAltOutlinedIcon fontSize="small" style={{ paddingRight: "5" }} />}
+            
             {post.dislikes.length}
           </Button>
 
@@ -444,7 +465,7 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
             size="small"
             color="primary"
             onClick={() => {
-              setCommentToggle((current) => !current);
+              setCommentToggle(true);
             }}
           >
             <CommentIcon fontSize="small" style={{ paddingRight: "5" }} />
@@ -473,10 +494,20 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
           </Button>
         </CardActions>
 
-        {commentToggle && (
+        <Dialog
+          fullWidth={false}
+          open={commentToggle}
+          maxWidth="sm"
+          onClose={() => setCommentToggle(false)}
+          aria-labelledby="responsive-dialog-title"
+        >
+          <DialogTitle style={{background: "orange"}} id="alert-dialog-title">Comment Section</DialogTitle>
+          <div style={{
+            background: "rgb(255, 192, 146)",
+            padding: "20px"
+          }}>
           <div>
-            <hr />
-            <div style={{ display: "flex", margin: "0 1rem" }}>
+            <div style={{ display: "flex", margin: "0 1rem", width: "100%" }}>
               <input
                 type="text"
                 style={{
@@ -491,9 +522,14 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
                 onChange={(e) => setCommentMessage(e.target.value)}
               />
               <Button
-                style={{ width: "20%", color: "#ffa500", padding: "0" }}
+                style={{ width: "20%", color: "#ffa500", padding: "0", opacity: commented ? "0.4" : "1" }}
+                disabled={commented}
                 onClick={() => {
                   console.log("Clicked!");
+                  if (!commentMessage) {
+                    return toast.error("Comment cannot be empty.");
+                  }
+                  setCommented(true);
                   dispatch(
                     commentPost(post._id, {
                       userID: creatorID,
@@ -501,8 +537,9 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
                     })
                   ).then(() => {
                     setCommentMessage("");
+                    setCommented(false);
                     console.log("Done");
-                  });
+                  }).catch((err) => setCommented(false));
                 }}
               >
                 <SendIcon />
@@ -567,7 +604,8 @@ const Post = ({ post, setCurrentId, fromProfile }) => {
                 ))}
             </div>
           </div>
-        )}
+          </div>
+        </Dialog>
       </Card>
 
       {/* ----- Delete Popup for admin ----- */}

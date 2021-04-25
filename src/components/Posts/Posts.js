@@ -44,6 +44,8 @@ const Posts = ({setCurrentId}) =>{
         }
     }
 
+   
+
     // console.log("posts : ", posts)
     return(
         !posts.length ? <CircularProgress/> : (
@@ -77,7 +79,7 @@ const Posts = ({setCurrentId}) =>{
                     if(isFavoritePosts && !post.favorites.includes(creatorID)) {
                         return (<></>)
                     } else {
-                        return (<Grid key={post._id} item xs={12} sm={12}>
+                        return (<Grid key={post._id} item xs={12} sm={12} lg={6}>
                             <Post post={post} setCurrentId={setCurrentId}/>
                         </Grid>)
                     }})}

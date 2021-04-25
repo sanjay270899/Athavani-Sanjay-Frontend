@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Switch, Route, useHistory, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Container, AppBar, Typography, Grid, Grow, Button } from '@material-ui/core';
+import { Container, AppBar, Typography, Grid, Grow, Button, Dialog } from '@material-ui/core';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import memories from './Images/memories.png'
 import Form from './components/Form/Form';
@@ -20,6 +20,7 @@ import Profile from './components/Profile/Profile';
 import Error404 from './components/404/Error404';
 import * as api from './api/index';
 import Footer from './components/Footer/Footer';
+import noProfilePhoto from "./assets/noProfilePhoto.jpg";
 
 function App() {
 
@@ -30,7 +31,10 @@ function App() {
 
   const dispatch = useDispatch();
   const [currentId, setCurrentId] = useState(null);
-  const [userImg, setUserImg] = useState("");
+  const [userImg, setUserImg] = useState(noProfilePhoto);
+
+  const [openCreatePost, setOpenCreatePost] = useState(false);
+
 
   useEffect(() => {
     dispatch(getPosts())
@@ -50,6 +54,7 @@ function App() {
         setUserImg(response.data.user.img)
     } catch (error) {
         console.log(error);
+        setUserImg(noProfilePhoto)
     }
 }, []);
 
@@ -57,6 +62,7 @@ function App() {
 
   function logoutHandle() {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     history.push('/signin');
     toast.success('Logged out successfully.');
   }
@@ -88,6 +94,14 @@ function App() {
                 </Link>
               </li>
               <li>
+                  <h1 style={{margin: "0"}} onClick={() => {
+                    setOpenCreatePost(true)
+                    toggleMenu()
+                    }}>
+                      Create Post
+                  </h1>
+              </li>
+              <li>
                   <h1 style={{margin: "0"}} onClick={() => logoutHandle()}>
                       Logout
                   </h1>
@@ -102,11 +116,22 @@ function App() {
           <Switch>
             <Route path="/" exact>
               <Grid container className={classes.mainContainer} justify="space-between" alignItems="stretch" spacing={3}>
-                <Grid item xs={12} sm={7}>
+                <Grid item xs={12} sm={12}>
                   <Posts setCurrentId={setCurrentId} />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Form currentId={currentId} setCurrentId={setCurrentId} />
+                  <Dialog
+                    fullWidth={false}
+                    open={openCreatePost}
+                    maxWidth="xs"
+                    onClose={() => setOpenCreatePost(false)}
+                    aria-labelledby="responsive-dialog-title"
+                  >
+                      <div style={{
+                        background: "#FF7F50",
+                        padding: "20px"
+                      }}>
+                      <Form currentId={currentId} setCurrentId={setCurrentId} setOpenCreatePost={setOpenCreatePost}/>
+                      </div>
+                  </Dialog>
                   <MailForm />
                 </Grid>
               </Grid>
